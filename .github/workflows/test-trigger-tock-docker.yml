@@ -33,6 +33,9 @@ jobs:
           virtualenvs-in-project: true
           virtualenvs-path: .venv
           installer-parallel: true
+      - name: Poetry add export extension # Required since poetry v2
+        run: |
+          poetry self add poetry-plugin-export
       - name: Create venv
         run: |
           python --version
@@ -43,6 +46,8 @@ jobs:
         run: |
           source .venv/bin/activate # Use python venv
           mvn install
+
+      # TODO :  mvn deploy -DaltDeploymentRepository=snapshot-repo::default::file:/tmp/test-m2-local
 
       # Package artifact for docker build
 

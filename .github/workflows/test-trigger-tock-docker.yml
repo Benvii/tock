@@ -34,6 +34,9 @@ jobs:
           virtualenvs-path: .venv
           installer-parallel: true
 
+      - name: Test venv existance
+        run: ls -lisha
+
       # Build tock
       - name: Build tock
         run: |

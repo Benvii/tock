@@ -33,9 +33,10 @@ jobs:
           virtualenvs-in-project: true
           virtualenvs-path: .venv
           installer-parallel: true
-
-      - name: Test venv existance
-        run: ls -lisha
+      - name: Create venv
+        run: |
+          python --version
+          python -m venv .venv
 
       # Build tock
       - name: Build tock

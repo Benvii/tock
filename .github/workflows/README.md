@@ -11,6 +11,7 @@ Set the following environment variables (not secrets) :
 * `TOCK_DOCKER_REPO_OWNER` : The organisation of repo owner (if personal) where your tock-docker repository is located
 * `TOCK_DOCKER_REPO_NAME` : name of the repository, probably `tock-docker`
 * `TOCK_DOCKER_DOCKER_BUILD_WORKFLOW_ID` : name of the workflow present in tock-docker probably `maven-docker-ci-cd.yml`
+* `TOCK_DOCKER_DOCKER_REF`: the branch used for tock-docker workflow, probably `master`.
 
 ### Configure secret
 

@@ -18,23 +18,26 @@ jobs:
       #  with:
       #    distribution: 'corretto' # See 'Supported distributions' for available options
       #    java-version: '23' # Based on the version used in the docker images
-      - name: Test env variables
-        run: echo "TOCK_DOCKER_REPO_OWNER ${{ vars.TOCK_DOCKER_REPO_OWNER }}"
       - name: Trigger docker build
         uses: actions/github-script@v7
         env:
           TOCK_DOCKER_REPO_OWNER: ${{ vars.TOCK_DOCKER_REPO_OWNER }}
           TOCK_DOCKER_REPO_NAME: ${{ vars.TOCK_DOCKER_REPO_NAME }}
           TOCK_DOCKER_DOCKER_BUILD_WORKFLOW_ID: ${{ vars.TOCK_DOCKER_DOCKER_BUILD_WORKFLOW_ID }}
+          TOCK_DOCKER_DOCKER_REF: ${{ vars.TOCK_DOCKER_DOCKER_REF }}
         with:
           github-token: ${{ secrets.TOCK_DOCKER_GITHUB_PAT }} # Fine-grained GitHub PAT that was saved as repository secret
           script: |
-            const { TOCK_DOCKER_REPO_OWNER, TOCK_DOCKER_REPO_NAME, TOCK_DOCKER_DOCKER_BUILD_WORKFLOW_ID } = process.env
+            const { TOCK_DOCKER_REPO_OWNER,
+              TOCK_DOCKER_REPO_NAME,
+              TOCK_DOCKER_DOCKER_BUILD_WORKFLOW_ID,
+              TOCK_DOCKER_DOCKER_REF
+            } = process.env
             await github.rest.actions.createWorkflowDispatch({
               owner: TOCK_DOCKER_REPO_OWNER,
               repo: TOCK_DOCKER_REPO_NAME,
               workflow_id: TOCK_DOCKER_DOCKER_BUILD_WORKFLOW_ID,
-              ref: 'master',
+              ref: TOCK_DOCKER_DOCKER_REF,
               inputs: {
                 tock_version: '24.9.5'
               }

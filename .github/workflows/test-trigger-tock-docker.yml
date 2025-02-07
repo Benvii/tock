@@ -34,7 +34,7 @@ jobs:
               owner: TOCK_DOCKER_REPO_OWNER,
               repo: TOCK_DOCKER_REPO_NAME,
               workflow_id: TOCK_DOCKER_DOCKER_BUILD_WORKFLOW_ID,
-              ref: 'main',
+              ref: 'master',
               inputs: {
                 tock_version: '24.9.5'
               }

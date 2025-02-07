@@ -21,9 +21,9 @@ jobs:
       - name: Trigger docker build
         uses: actions/github-script@v6
         env:
-          TOCK_DOCKER_REPO_OWNER: ${{ TOCK_DOCKER_REPO_OWNER }}
-          TOCK_DOCKER_REPO_NAME: ${{ TOCK_DOCKER_REPO_NAME }}
-          TOCK_DOCKER_DOCKER_BUILD_WORKFLOW_ID: ${{ TOCK_DOCKER_DOCKER_BUILD_WORKFLOW_ID }}
+          TOCK_DOCKER_REPO_OWNER: ${{ env.TOCK_DOCKER_REPO_OWNER }}
+          TOCK_DOCKER_REPO_NAME: ${{ env.TOCK_DOCKER_REPO_NAME }}
+          TOCK_DOCKER_DOCKER_BUILD_WORKFLOW_ID: ${{ env.TOCK_DOCKER_DOCKER_BUILD_WORKFLOW_ID }}
         with:
           github-token: ${{ secrets.TOCK_DOCKER_GITHUB_PAT }} # Fine-grained GitHub PAT that was saved as repository secret
           script: |

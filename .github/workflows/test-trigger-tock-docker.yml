@@ -19,7 +19,7 @@ jobs:
       #    distribution: 'corretto' # See 'Supported distributions' for available options
       #    java-version: '23' # Based on the version used in the docker images
       - name: Trigger docker build
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         env:
           TOCK_DOCKER_REPO_OWNER: ${{ env.TOCK_DOCKER_REPO_OWNER }}
           TOCK_DOCKER_REPO_NAME: ${{ env.TOCK_DOCKER_REPO_NAME }}

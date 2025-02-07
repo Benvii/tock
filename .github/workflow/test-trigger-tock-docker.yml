@@ -1,0 +1,33 @@
+# Github Workflow that build docker images using maven Fabrik IO
+name: Test trigger tock-docker
+
+on:
+  push:
+    branches:
+      - github_actions_ci_cd_tests
+  # TODO hanlde PR events
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      #- uses: actions/checkout@v4
+      # Install JAVA and maven toolchain
+      #- name: Setup Java and Maven using the same version as the docker
+      #  uses: actions/setup-java@v4
+      #  with:
+      #    distribution: 'corretto' # See 'Supported distributions' for available options
+      #    java-version: '23' # Based on the version used in the docker images
+      - uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.TOCK_DOCKER_GITHUB_PAT }} # Fine-grained GitHub PAT that was saved as repository secret
+          script: |
+            await github.rest.actions.createworkflowDispatch({
+              owner: '${{TOCK_DOCKER_REPO_OWNER}}',
+              repo: '${{TOCK_DOCKER_REPO_NAME}}',
+              workflow_id: '${{TOCK_DOCKER_DOCKER_BUILD_WORKFLOW_ID}}',
+              ref: 'main',
+              inputs: {
+                tock_version: '24.9.5'
+              }
+            })

@@ -58,7 +58,7 @@ jobs:
         run: |
           TOCK_VERSION=tock-$COMMIT_SHORT_SHA-SNAPSHOT
           echo "TOCK_VERSION=$TOCK_VERSION" >> $GITHUB_ENV #Might be used in other jobs
-          mvn versions:set -DnewVersion=TOCK_VERSION -DgenerateBackupPoms=false
+          mvn versions:set -DnewVersion=$TOCK_VERSION -DgenerateBackupPoms=false
 
       # Build tock
       - name: Build tock

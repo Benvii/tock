@@ -109,6 +109,6 @@ jobs:
                 tock_version: TOCK_VERSION,
                 tock_workflow_m2_artifact_name: M2_LOCAL_REPO_ARTIFACT_NAME,
                 tock_workflow_repo_full_name: `${context.repo.owner}/${context.repo.repo}`,
-                tock_workflow_run_id: context.runId,
+                tock_workflow_run_id: `${context.runId}`,
               }
             })

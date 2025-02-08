@@ -7,6 +7,13 @@ on:
       - github_actions_ci_cd_tests
   # TODO hanlde PR events
 
+env:
+  # Folder used for local deployment of the build artifact, stored in the artifact
+  M2_LOCAL_DEPLOY_FOLDER: /tmp/test-m2-local
+
+  # Name of the artifact that will contain all the generated content publish to a local m2 repository
+  M2_LOCAL_REPO_ARTIFACT_NAME: tock-m2-repository
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -41,38 +48,67 @@ jobs:
           python --version
           python -m venv .venv
 
+      - name: Set short git commit SHA
+        id: vars
+        run: |
+          calculatedSha=$(git rev-parse --short ${{ github.sha }})
+          echo "COMMIT_SHORT_SHA=$calculatedSha" >> $GITHUB_ENV
+
+      - name: Set version SNAPSHOT version short commit
+        run: |
+          TOCK_VERSION=tock-$COMMIT_SHORT_SHA-SNAPSHOT
+          echo "TOCK_VERSION=$TOCK_VERSION" >> $GITHUB_ENV #Might be used in other jobs
+          mvn versions:set -DnewVersion=TOCK_VERSION -DgenerateBackupPoms=false
+
       # Build tock
       - name: Build tock
         run: |
           source .venv/bin/activate # Use python venv
-          mvn install
+          echo "Using M2_LOCAL_DEPLOY_FOLDER: $M2_LOCAL_DEPLOY_FOLDER"
+          mkdir -p $M2_LOCAL_DEPLOY_FOLDER
+          mvn deploy -DaltDeploymentRepository=snapshot-repo::default::file:$M2_LOCAL_DEPLOY_FOLDER
 
       # TODO :  mvn deploy -DaltDeploymentRepository=snapshot-repo::default::file:/tmp/test-m2-local
 
       # Package artifact for docker build
+      - name: Archive produced JAR published in local M2 folder in the artifact
+        uses: actions/upload-artifact@v4 # @see https://github.com/actions/upload-artifact?tab=readme-ov-file#usage
+        with:
+          name: ${{ env.M2_LOCAL_REPO_ARTIFACT_NAME }}
+          if-no-files-found: error # Fails if no files are found in the folder
+          retention-days: 1 # Minimal time to keep the 1 day.
+          include-hidden-files: true
+          compression-level: 0 # No compression
+          path: ${{ env.M2_LOCAL_DEPLOY_FOLDER }}
 
       # Trigger docker image build
-#      - name: Trigger docker build
-#        uses: actions/github-script@v7
-#        env:
-#          TOCK_DOCKER_REPO_OWNER: ${{ vars.TOCK_DOCKER_REPO_OWNER }}
-#          TOCK_DOCKER_REPO_NAME: ${{ vars.TOCK_DOCKER_REPO_NAME }}
-#          TOCK_DOCKER_DOCKER_BUILD_WORKFLOW_ID: ${{ vars.TOCK_DOCKER_DOCKER_BUILD_WORKFLOW_ID }}
-#          TOCK_DOCKER_DOCKER_REF: ${{ vars.TOCK_DOCKER_DOCKER_REF }}
-#        with:
-#          github-token: ${{ secrets.TOCK_DOCKER_GITHUB_PAT }} # Fine-grained GitHub PAT that was saved as repository secret
-#          script: |
-#            const { TOCK_DOCKER_REPO_OWNER,
-#              TOCK_DOCKER_REPO_NAME,
-#              TOCK_DOCKER_DOCKER_BUILD_WORKFLOW_ID,
-#              TOCK_DOCKER_DOCKER_REF
-#            } = process.env
-#            await github.rest.actions.createWorkflowDispatch({
-#              owner: TOCK_DOCKER_REPO_OWNER,
-#              repo: TOCK_DOCKER_REPO_NAME,
-#              workflow_id: TOCK_DOCKER_DOCKER_BUILD_WORKFLOW_ID,
-#              ref: TOCK_DOCKER_DOCKER_REF,
-#              inputs: {
-#                tock_version: '24.9.5'
-#              }
-#            })
+      - name: Trigger docker build
+        uses: actions/github-script@v7
+        env:
+          TOCK_DOCKER_REPO_OWNER: ${{ vars.TOCK_DOCKER_REPO_OWNER }}
+          TOCK_DOCKER_REPO_NAME: ${{ vars.TOCK_DOCKER_REPO_NAME }}
+          TOCK_DOCKER_DOCKER_BUILD_WORKFLOW_ID: ${{ vars.TOCK_DOCKER_DOCKER_BUILD_WORKFLOW_ID }}
+          TOCK_DOCKER_DOCKER_REF: ${{ vars.TOCK_DOCKER_DOCKER_REF }}
+        with:
+          github-token: ${{ secrets.TOCK_DOCKER_GITHUB_PAT }} # Fine-grained GitHub PAT that was saved as repository secret
+          script: |
+            const { TOCK_DOCKER_REPO_OWNER,
+              TOCK_DOCKER_REPO_NAME,
+              TOCK_DOCKER_DOCKER_BUILD_WORKFLOW_ID,
+              TOCK_DOCKER_DOCKER_REF,
+              TOCK_VERSION,
+              M2_LOCAL_REPO_ARTIFACT_NAME,
+            } = process.env
+            
+            await github.rest.actions.createWorkflowDispatch({
+              owner: TOCK_DOCKER_REPO_OWNER,
+              repo: TOCK_DOCKER_REPO_NAME,
+              workflow_id: TOCK_DOCKER_DOCKER_BUILD_WORKFLOW_ID,
+              ref: TOCK_DOCKER_DOCKER_REF,
+              inputs: {
+                tock_version: TOCK_VERSION
+                tock_workflow_m2_artifact_name: M2_LOCAL_REPO_ARTIFACT_NAME
+                tock_workflow_repo_full_name: `${context.repo.owner}/${context.repo.repo}`
+                tock_workflow_run_id: context.runId
+              }
+            })

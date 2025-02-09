@@ -66,7 +66,12 @@ jobs:
           source .venv/bin/activate # Use python venv
           echo "Using M2_LOCAL_DEPLOY_FOLDER: $M2_LOCAL_DEPLOY_FOLDER"
           mkdir -p $M2_LOCAL_DEPLOY_FOLDER
-          mvn deploy -DaltDeploymentRepository=snapshot-repo::default::file:$M2_LOCAL_DEPLOY_FOLDER
+          mvn install -T 4C
+
+      - name: Isolate ai.tock packages for the artifact
+        run: |
+          mkdir -p $M2_LOCAL_DEPLOY_FOLDER/ai/
+          mv ~/.m2/repository/ai/tock $M2_LOCAL_DEPLOY_FOLDER/ai/
 
       # TODO :  mvn deploy -DaltDeploymentRepository=snapshot-repo::default::file:/tmp/test-m2-local
 
